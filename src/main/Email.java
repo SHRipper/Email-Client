@@ -1,8 +1,8 @@
 package main;
 
-import java.io.IOException;
 import java.util.Properties;
 
+import javax.mail.Address;
 import javax.mail.Authenticator;
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -25,6 +25,7 @@ public class Email extends Authenticator {
 	}
 
 	public void setSender(String sender) {
+		System.out.println("Sender is now: " + sender);
 		Sender = sender;
 	}
 
@@ -33,6 +34,7 @@ public class Email extends Authenticator {
 	}
 
 	public void setRecipiant(String recipiant) {
+		System.out.println("Recipiant is now: " + recipiant);
 		Recipiant = recipiant;
 	}
 
@@ -41,6 +43,7 @@ public class Email extends Authenticator {
 	}
 
 	public void setRegard(String regard) {
+		System.out.println("Regard is now: " + regard);
 		Regard = regard;
 	}
 
@@ -49,6 +52,7 @@ public class Email extends Authenticator {
 	}
 
 	public void setFont(String font) {
+		System.out.println("Font is now: " + font);
 		Font = font;
 	}
 
@@ -57,14 +61,20 @@ public class Email extends Authenticator {
 	}
 
 	public void setFontsize(Integer fontsize) {
+		System.out.println("Fontsize is now: " + fontsize);
 		Fontsize = fontsize;
 	}
 
 	public void receiveEmail(String pop3Host, String storeType, String user, String password) {
+		String port = "995";
+		String protocol = "pop3";
+		String host = "pop.gmx.net";
 
 		try {
 			Properties properties = new Properties();
-			properties.put("mail.pop3.host", pop3Host);
+			properties.put(String.format("mail.%s.host", protocol), host);
+			properties.put(String.format("mail.%s.port", protocol), port);
+
 			Session emailSession = Session.getDefaultInstance(properties);
 
 			POP3Store emailStore = (POP3Store) emailSession.getStore(storeType);
@@ -75,12 +85,35 @@ public class Email extends Authenticator {
 
 			Message[] messages = emailFolder.getMessages();
 			for (int i = 0; i < messages.length; i++) {
-				Message message = messages[i];
-				System.out.println("==============================");
-				System.out.println("Email #" + (i + 1));
-				System.out.println("Subject: " + message.getSubject());
-				System.out.println("From: " + message.getFrom()[0]);
-				System.out.println("Text: " + message.getContent().toString());
+				Message msg = messages[i];
+				Address[] fromAddress = msg.getFrom();
+				String from = fromAddress[0].toString();
+				String subject = msg.getSubject();
+				String sentDate = msg.getSentDate().toString();
+
+				String contentType = msg.getContentType();
+				String messageContent = "";
+
+				if (contentType.contains("text/plain") || contentType.contains("text/html")) {
+					try {
+						Object content = msg.getContent();
+						if (content != null) {
+							messageContent = content.toString();
+						}
+					} catch (Exception ex) {
+						messageContent = "[Error downloading content]";
+						ex.printStackTrace();
+					}
+				}
+
+				// print out details of each message
+				System.out.println("Message #" + (i + 1) + ":");
+				System.out.println("\t From: " + from);
+				System.out.println("\t To: ");
+				System.out.println("\t CC: ");
+				System.out.println("\t Subject: " + subject);
+				System.out.println("\t Sent Date: " + sentDate);
+				System.out.println("\t Message: " + messageContent);
 			}
 
 			emailFolder.close(false);
@@ -89,13 +122,11 @@ public class Email extends Authenticator {
 			e.printStackTrace();
 		} catch (MessagingException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 
 	}
 
 	public void sendEmail() {
-
+		System.out.println("Email sending is not possible!");
 	}
 }

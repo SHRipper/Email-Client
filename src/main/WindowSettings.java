@@ -36,9 +36,8 @@ public class WindowSettings {
 			@Override
 			public void run() {
 				try {
-					WindowSettings window = new WindowSettings();
-					window.frameSettings.setVisible(true);
 					email = new Email();
+					initialize();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -49,9 +48,6 @@ public class WindowSettings {
 	/**
 	 * Create the application.
 	 */
-	public WindowSettings() {
-		initialize();
-	}
 
 	/**
 	 * Initialize the contents of the frame.
@@ -62,6 +58,7 @@ public class WindowSettings {
 		frameSettings.setBounds(100, 100, 522, 485);
 		frameSettings.setDefaultCloseOperation(frameSettings.DISPOSE_ON_CLOSE);
 		frameSettings.getContentPane().setLayout(new CardLayout(0, 0));
+		frameSettings.setVisible(true);
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		frameSettings.getContentPane().add(tabbedPane, "name_4591055611414");
@@ -154,6 +151,7 @@ public class WindowSettings {
 		lblFontExample.setBorder(new LineBorder(Color.BLACK));
 		panelFontExample.add(lblFontExample);
 
+		System.out.println("WindowSettings created successfully");
 	}
 
 	private void changeExample() {

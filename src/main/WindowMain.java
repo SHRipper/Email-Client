@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -15,6 +16,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -40,9 +42,11 @@ public class WindowMain {
 	private JTextField txtSender;
 	private JTextField txtRecipiant;
 	private JTextField txtRegard;
-	private JTable tableEmailOverview;
 
 	private static Email email;
+
+	private JScrollPane scrollPaneTable;
+	private JTable tableEmailOverview;
 
 	/**
 	 * Launch the application.
@@ -53,6 +57,7 @@ public class WindowMain {
 			public void run() {
 				try {
 					WindowMain window = new WindowMain();
+					window.createWindowMain();
 					window.frameMain.setVisible(true);
 					email = new Email();
 				} catch (Exception e) {
@@ -65,7 +70,7 @@ public class WindowMain {
 	/**
 	 * Create the application.
 	 */
-	public WindowMain() {
+	public void createWindowMain() {
 		initialize();
 	}
 
@@ -97,17 +102,11 @@ public class WindowMain {
 		 * LABELS
 		 */
 
-		JLabel lblSender = new JLabel("Sender:");
+		JLabel lblSender = new JLabel("From:");
 		lblSender.setHorizontalAlignment(SwingConstants.TRAILING);
 		lblSender.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
 		lblSender.setBounds(175, 30, 81, 20);
 		panelEdit.add(lblSender);
-
-		JLabel lblRecipiant = new JLabel("Recipiant:");
-		lblRecipiant.setHorizontalAlignment(SwingConstants.TRAILING);
-		lblRecipiant.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
-		lblRecipiant.setBounds(175, 55, 81, 20);
-		panelEdit.add(lblRecipiant);
 
 		JLabel lblRegard = new JLabel("Regard:");
 		lblRegard.setHorizontalAlignment(SwingConstants.TRAILING);
@@ -119,6 +118,22 @@ public class WindowMain {
 		 * BUTTONS
 		 */
 
+		JButton btnReceive = new JButton("Receive Emails");
+		btnReceive.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				String mailPop3Host = "pop.gmx.net";
+				String mailStoreType = "pop3";
+				String user = "lukas-schaef@gmx.de";
+				String password = "schaefl07";
+
+				email.receiveEmail(mailPop3Host, mailStoreType, user, password);
+			}
+		});
+		btnReceive.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
+		btnReceive.setBounds(192, 60, 146, 50);
+		panelOverview.add(btnReceive);
+
 		JButton btnNewButton = new JButton("New...");
 		btnNewButton.addActionListener(new ActionListener() {
 			@Override
@@ -126,7 +141,7 @@ public class WindowMain {
 				// "New.." Button clicked
 				panelOverview.setVisible(false);
 				panelEdit.setVisible(true);
-
+				System.out.println("Changed to Edit Panel");
 			}
 		});
 		btnNewButton.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
@@ -137,6 +152,7 @@ public class WindowMain {
 		btnSend.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("Sending E-mail...");
 				email.sendEmail();
 			}
 		});
@@ -151,11 +167,29 @@ public class WindowMain {
 				// go back to overview panel
 				panelOverview.setVisible(true);
 				panelEdit.setVisible(false);
+				System.out.println("Changed to Overview Panel");
 			}
 		});
 		btnBack.setFont(new Font("Trebuchet MS", Font.PLAIN, 12));
 		btnBack.setBounds(48, 31, 66, 23);
 		panelEdit.add(btnBack);
+
+		JButton btnRecipiant = new JButton("To:");
+		btnRecipiant.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// create Contacts Window
+
+				ContactDialog cd = new ContactDialog();
+				cd.createDialog();
+
+				System.out.println("closed");
+				txtRecipiant.setText(email.getRecipiant());
+			}
+		});
+		btnRecipiant.setFont(new Font("Trebuchet MS", Font.PLAIN, 13));
+		btnRecipiant.setBounds(201, 54, 55, 23);
+		panelEdit.add(btnRecipiant);
 
 		/*
 		 * TEXT FIELDS
@@ -228,45 +262,21 @@ public class WindowMain {
 		 * TABLE
 		 */
 
+		JScrollPane scrollPaneTable = new JScrollPane();
+		scrollPaneTable.setBounds(217, 149, 930, 745);
+		panelOverview.add(scrollPaneTable);
+
 		tableEmailOverview = new JTable();
-		tableEmailOverview
-				.setModel(new DefaultTableModel(new Object[][] {}, new String[] { "Regard", "Sender", "Date" }) {
-					Class[] columnTypes = new Class[] { String.class, String.class, String.class };
-
-					@Override
-					public Class getColumnClass(int columnIndex) {
-						return columnTypes[columnIndex];
-					}
-
-					boolean[] columnEditables = new boolean[] { false, false, false };
-
-				});
-		tableEmailOverview.getColumnModel().getColumn(0).setPreferredWidth(400);
-		tableEmailOverview.getColumnModel().getColumn(0).setMinWidth(50);
-		tableEmailOverview.getColumnModel().getColumn(1).setPreferredWidth(300);
-		tableEmailOverview.getColumnModel().getColumn(1).setMinWidth(50);
-		tableEmailOverview.getColumnModel().getColumn(2).setPreferredWidth(80);
-		tableEmailOverview.getColumnModel().getColumn(2).setMinWidth(40);
-		tableEmailOverview.setShowVerticalLines(false);
+		DefaultTableModel tableModel = new DefaultTableModel(new Object[][] {},
+				new String[] { "Regard", "Sender", "Date" });
+		ArrayList<String> rowData = new ArrayList<>();
+		rowData.add("test");
+		rowData.add("lukas");
+		tableModel.addRow(rowData.toArray());
+		tableEmailOverview.setModel(tableModel);
 		tableEmailOverview.setFont(new Font("Trebuchet MS", Font.PLAIN, 14));
-		tableEmailOverview.setBounds(220, 152, 717, 723);
-		panelOverview.add(tableEmailOverview);
 
-		JButton btnReceive = new JButton("Receive Emails");
-		btnReceive.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String mailPop3Host = "pop.gmx.net";
-				String mailStoreType = "pop3";
-				String user = "lukas-schaef@gmx.de";
-				String password = "schaefl07";
-
-				email.receiveEmail(mailPop3Host, mailStoreType, user, password);
-			}
-		});
-		btnReceive.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
-		btnReceive.setBounds(192, 60, 146, 50);
-		panelOverview.add(btnReceive);
+		scrollPaneTable.setViewportView(tableEmailOverview);
 
 		/*
 		 * MENU
@@ -282,7 +292,7 @@ public class WindowMain {
 		mntmReceive.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// email.receiveEmail();
+
 			}
 		});
 		mnFile.add(mntmReceive);
@@ -308,22 +318,24 @@ public class WindowMain {
 			}
 		});
 		mnFile.add(mntmExit);
+
+		System.out.println("WindowMain created successfully");
 	}
 
 	private void showInbox() {
-
+		System.out.println("Inbox Folder");
 	}
 
 	private void showSent() {
-
+		System.out.println("Sent Folder");
 	}
 
 	private void showDrafts() {
-
+		System.out.println("Drafts Folder");
 	}
 
 	private void showContacts() {
-
+		System.out.println("Contacts Folder");
 	}
 
 }
