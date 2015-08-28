@@ -322,8 +322,8 @@ public class WindowMain {
 		mntmSettings.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				WindowSettings ws = new WindowSettings();
-				ws.createSettings();
+				ContactDialog contactDialog = new ContactDialog();
+
 			}
 		});
 		mnFile.add(mntmSettings);
