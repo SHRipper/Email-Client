@@ -20,7 +20,7 @@ public class ConnectDB {
 	public ConnectDB() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-
+			// hallo
 			con = DriverManager.getConnection("jdbc:mysql://localhost:3306/email-client", "root", "Schaefl07");
 			st = con.createStatement();
 
