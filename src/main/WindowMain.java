@@ -34,6 +34,18 @@ public class WindowMain {
 
 	private JFrame frameMain;
 
+	// ArrayList for tableMain
+	ArrayList<String> rowData;
+
+	// Table Models
+	private DefaultTableModel tableModelContacts;
+	private DefaultTableModel tableModelInbox;
+	private DefaultTableModel tableModelDrafts;
+	private DefaultTableModel tableModelSent;
+
+	// Buttons
+	private JButton btnSendTo;
+
 	// Panels
 	private JPanel panelOverview;
 	private JPanel panelEdit;
@@ -46,7 +58,7 @@ public class WindowMain {
 	private static Email email;
 
 	private JScrollPane scrollPaneTable;
-	private JTable tableEmailOverview;
+	private JTable tableMain;
 
 	/**
 	 * Launch the application.
@@ -131,7 +143,7 @@ public class WindowMain {
 			}
 		});
 		btnReceive.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
-		btnReceive.setBounds(192, 60, 146, 50);
+		btnReceive.setBounds(160, 60, 146, 50);
 		panelOverview.add(btnReceive);
 
 		JButton btnNewButton = new JButton("New...");
@@ -181,15 +193,27 @@ public class WindowMain {
 				// create Contacts Window
 
 				ContactDialog cd = new ContactDialog();
-				cd.createDialog();
-
+				txtRecipiant.setText(cd.getSelectedAdress());
 				System.out.println("closed");
-				txtRecipiant.setText(email.getRecipiant());
 			}
 		});
 		btnRecipiant.setFont(new Font("Trebuchet MS", Font.PLAIN, 13));
 		btnRecipiant.setBounds(201, 54, 55, 23);
 		panelEdit.add(btnRecipiant);
+
+		btnSendTo = new JButton("Send Email...");
+		btnSendTo.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
+		btnSendTo.setBounds(316, 60, 146, 50);
+		btnSendTo.setVisible(false);
+		panelOverview.add(btnSendTo);
+		btnSendTo.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				panelOverview.setVisible(false);
+				panelEdit.setVisible(true);
+				txtRecipiant.setText("");
+			}
+		});
 
 		/*
 		 * TEXT FIELDS
@@ -266,17 +290,14 @@ public class WindowMain {
 		scrollPaneTable.setBounds(217, 149, 930, 745);
 		panelOverview.add(scrollPaneTable);
 
-		tableEmailOverview = new JTable();
-		DefaultTableModel tableModel = new DefaultTableModel(new Object[][] {},
-				new String[] { "Regard", "Sender", "Date" });
-		ArrayList<String> rowData = new ArrayList<>();
+		tableMain = new JTable();
+		rowData = new ArrayList<>();
 		rowData.add("test");
 		rowData.add("lukas");
-		tableModel.addRow(rowData.toArray());
-		tableEmailOverview.setModel(tableModel);
-		tableEmailOverview.setFont(new Font("Trebuchet MS", Font.PLAIN, 14));
-
-		scrollPaneTable.setViewportView(tableEmailOverview);
+		rowData.add("26.08.2015");
+		tableMain.setFont(new Font("Trebuchet MS", Font.PLAIN, 14));
+		scrollPaneTable.setViewportView(tableMain);
+		showInboxTable();
 
 		/*
 		 * MENU
@@ -324,6 +345,7 @@ public class WindowMain {
 
 	private void showInbox() {
 		System.out.println("Inbox Folder");
+		showInboxTable();
 	}
 
 	private void showSent() {
@@ -336,6 +358,27 @@ public class WindowMain {
 
 	private void showContacts() {
 		System.out.println("Contacts Folder");
+		showContactsTable();
+
+		if (tableMain.getSelectedRow() != -1) {
+			btnSendTo.setVisible(true);
+		}
+
 	}
 
+	private void showInboxTable() {
+		tableModelInbox = new DefaultTableModel(new Object[][] {}, new String[] { "Regard", "Sender", "Date" });
+		// rowData is just an example array
+		tableModelInbox.addRow(rowData.toArray());
+		tableMain.setModel(tableModelInbox);
+	}
+
+	private void showContactsTable() {
+		tableModelContacts = new DefaultTableModel(new Object[][] {}, new String[] { "Name", "Email address" });
+
+		// connect to db and extract table data
+		ConnectDB db = new ConnectDB();
+		tableModelContacts.addRow(db.getTableData().toArray());
+		tableMain.setModel(tableModelContacts);
+	}
 }
