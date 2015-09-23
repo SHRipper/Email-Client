@@ -86,6 +86,7 @@ public class ContactDialog extends JDialog {
 	}
 
 	private void buttonAction() {
+		// dispose the dialog
 		Window win = SwingUtilities.getWindowAncestor(this);
 		win.dispose();
 	}
@@ -93,6 +94,7 @@ public class ContactDialog extends JDialog {
 	public String getSelectedAdress() {
 
 		// cut the Information of the Recipiant to just the email address
+
 		Integer currentIndex = ContactList.getSelectedIndex();
 		String selectedContact = listmodel.get(currentIndex);
 		System.out.println(selectedContact);

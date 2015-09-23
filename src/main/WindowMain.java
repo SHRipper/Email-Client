@@ -6,9 +6,16 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -22,6 +29,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.event.TreeSelectionEvent;
@@ -33,9 +41,6 @@ import javax.swing.tree.DefaultTreeModel;
 public class WindowMain {
 
 	private JFrame frameMain;
-
-	// ArrayList for tableMain
-	ArrayList<String> rowData;
 
 	// Table Models
 	private DefaultTableModel tableModelContacts;
@@ -54,6 +59,7 @@ public class WindowMain {
 	private JTextField txtSender;
 	private JTextField txtRecipiant;
 	private JTextField txtRegard;
+	private JTextPane txtMessage;
 
 	private static Email email;
 
@@ -72,6 +78,7 @@ public class WindowMain {
 					window.createWindowMain();
 					window.frameMain.setVisible(true);
 					email = new Email();
+
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -95,6 +102,15 @@ public class WindowMain {
 		frameMain.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frameMain.getContentPane().setLayout(new CardLayout(0, 0));
 
+		frameMain.addWindowListener(new WindowAdapter() {
+
+			@Override
+			public void windowOpened(WindowEvent e) {
+
+				// initial email fetch
+				fillEmailTable();
+			}
+		});
 		/*
 		 * PANELS
 		 */
@@ -134,12 +150,8 @@ public class WindowMain {
 		btnReceive.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				String mailPop3Host = "pop.gmx.net";
-				String mailStoreType = "pop3";
-				String user = "lukas-schaef@gmx.de";
-				String password = "schaefl07";
-
-				email.receiveEmail(mailPop3Host, mailStoreType, user, password);
+				// receive emails and fill the table with data
+				fillEmailTable();
 			}
 		});
 		btnReceive.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
@@ -150,7 +162,15 @@ public class WindowMain {
 		btnNewButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// "New.." Button clicked
+				// hide "From-Label and Textfield"
+				lblSender.setVisible(false);
+				txtSender.setVisible(false);
+
+				// reveal To-Button and textfield
+				btnSendTo.setVisible(true);
+				txtRecipiant.setVisible(true);
+
+				// change to edit panel
 				panelOverview.setVisible(false);
 				panelEdit.setVisible(true);
 				System.out.println("Changed to Edit Panel");
@@ -165,6 +185,10 @@ public class WindowMain {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Sending E-mail...");
+				// set email data from textfields and send the email
+				email.setRecipiant(txtRecipiant.getText());
+				email.setRegard(txtRegard.getText());
+				email.setBody(txtMessage.getText());
 				email.sendEmail();
 			}
 		});
@@ -190,11 +214,13 @@ public class WindowMain {
 		btnRecipiant.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// create Contacts Window
+				// create modal Contacts Window
 
 				ContactDialog cd = new ContactDialog();
+
+				// set textbox value to selected contact
 				txtRecipiant.setText(cd.getSelectedAdress());
-				System.out.println("closed");
+
 			}
 		});
 		btnRecipiant.setFont(new Font("Trebuchet MS", Font.PLAIN, 13));
@@ -219,9 +245,9 @@ public class WindowMain {
 		 * TEXT FIELDS
 		 */
 
-		JTextPane txtNewEmail = new JTextPane();
-		txtNewEmail.setBounds(100, 155, 1000, 688);
-		panelEdit.add(txtNewEmail);
+		txtMessage = new JTextPane();
+		txtMessage.setBounds(100, 155, 1000, 688);
+		panelEdit.add(txtMessage);
 		panelEdit.setVisible(false);
 
 		txtSender = new JTextField();
@@ -291,13 +317,72 @@ public class WindowMain {
 		panelOverview.add(scrollPaneTable);
 
 		tableMain = new JTable();
-		rowData = new ArrayList<>();
-		rowData.add("test");
-		rowData.add("lukas");
-		rowData.add("26.08.2015");
 		tableMain.setFont(new Font("Trebuchet MS", Font.PLAIN, 14));
 		scrollPaneTable.setViewportView(tableMain);
 		showInboxTable();
+
+		tableMain.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					// reveal "From-Label and Textfield"
+					lblSender.setVisible(true);
+					txtSender.setVisible(true);
+
+					// hide To-Button and textfield
+					btnSendTo.setVisible(false);
+					btnSendTo.setEnabled(false);
+					txtRecipiant.setVisible(false);
+
+					// change into edit window
+					panelOverview.setVisible(false);
+					panelEdit.setVisible(true);
+
+					// fill edit window with information from the message
+					txtSender.setText("");
+				}
+			}
+		});
+
+		tableMain.addKeyListener(new KeyAdapter() {
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				tableMain.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "remove row");
+				tableMain.getActionMap().put("remove row", new AbstractAction() {
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						Integer selectedRow = tableMain.getSelectedRow();
+						if (selectedRow >= 0) {
+
+							int[] rows = tableMain.getSelectedRows();
+							// sort the indices of selected Rows because if you
+							// delete 4, 5 is now 4
+							Arrays.sort(rows);
+
+							// remove from last indices to first
+							for (int i = tableMain.getSelectedRowCount() - 1; i >= 0; i--) {
+								tableModelInbox.removeRow(rows[i]);
+							}
+
+							Integer currentRows = tableModelInbox.getRowCount();
+
+							// after row deletion action
+							if (currentRows - 1 >= selectedRow && currentRows != 0) {
+								// select the row which is in the same place
+								tableMain.setRowSelectionInterval(selectedRow, selectedRow);
+
+							} else if (currentRows == selectedRow && currentRows != 0) {
+								// select the last row in the list
+								tableMain.setRowSelectionInterval(currentRows - 1, currentRows - 1);
+
+							}
+						}
+					}
+				});
+			}
+		});
 
 		/*
 		 * MENU
@@ -341,6 +426,7 @@ public class WindowMain {
 		mnFile.add(mntmExit);
 
 		System.out.println("WindowMain created successfully");
+
 	}
 
 	private void showInbox() {
@@ -367,10 +453,15 @@ public class WindowMain {
 	}
 
 	private void showInboxTable() {
-		tableModelInbox = new DefaultTableModel(new Object[][] {}, new String[] { "Regard", "Sender", "Date" });
-		// rowData is just an example array
-		tableModelInbox.addRow(rowData.toArray());
+		tableModelInbox = new DefaultTableModel(new Object[][] {}, new String[] { "Regard", "Sender", "Date" }) {
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
+
 		tableMain.setModel(tableModelInbox);
+
 	}
 
 	private void showContactsTable() {
@@ -380,5 +471,18 @@ public class WindowMain {
 		ConnectDB db = new ConnectDB();
 		tableModelContacts.addRow(db.getTableData().toArray());
 		tableMain.setModel(tableModelContacts);
+	}
+
+	private void fillEmailTable() {
+
+		// get the email from the server (-1 == get every email)
+		email.receiveEmail(-1);
+
+		// get the list of data and crop it to the table format
+		ArrayList<String> emailList = email.getTableContent();
+		for (int i = 0; i < emailList.size() - 3; i = i + 3) {
+			tableModelInbox.addRow(emailList.subList(i, i + 3).toArray());
+		}
+		tableMain.addRowSelectionInterval(0, 0);
 	}
 }
