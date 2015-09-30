@@ -38,7 +38,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
-public class WindowMain {
+public class WindowMain extends Email {
 
 	private JFrame frameMain;
 
@@ -77,7 +77,6 @@ public class WindowMain {
 					WindowMain window = new WindowMain();
 					window.createWindowMain();
 					window.frameMain.setVisible(true);
-					email = new Email();
 
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -150,7 +149,8 @@ public class WindowMain {
 		btnReceive.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// receive emails and fill the table with data
+
+				cleanTable();
 				fillEmailTable();
 			}
 		});
@@ -185,11 +185,11 @@ public class WindowMain {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Sending E-mail...");
-				// set email data from textfields and send the email
-				email.setRecipiant(txtRecipiant.getText());
-				email.setRegard(txtRegard.getText());
-				email.setBody(txtMessage.getText());
-				email.sendEmail();
+				// set email data from text fields and send the email
+				setRecipiant(txtRecipiant.getText());
+				setRegard(txtRegard.getText());
+				setBody(txtMessage.getText());
+				sendEmail();
 			}
 		});
 		btnSend.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
@@ -294,15 +294,20 @@ public class WindowMain {
 				switch (e.getPath().toString()) {
 				case "[User, Inbox]":
 					showInbox();
+					cleanTable();
+					fillEmailTable();
 					break;
 				case "[User, Sent]":
 					showSent();
+					cleanTable();
 					break;
 				case "[User, Drafts]":
 					showDrafts();
+					cleanTable();
 					break;
 				case "[User, Contacts]":
 					showContacts();
+					cleanTable();
 					break;
 				}
 			}
@@ -324,6 +329,7 @@ public class WindowMain {
 		tableMain.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
+				System.out.println(tableMain.getSelectedRow());
 				if (e.getClickCount() == 2) {
 					// reveal "From-Label and Textfield"
 					lblSender.setVisible(true);
@@ -476,13 +482,26 @@ public class WindowMain {
 	private void fillEmailTable() {
 
 		// get the email from the server (-1 == get every email)
-		email.receiveEmail(-1);
+		receiveEmail(-1);
 
 		// get the list of data and crop it to the table format
-		ArrayList<String> emailList = email.getTableContent();
+		ArrayList<String> emailList = getTableContent();
+
+		Integer insertedLine = 0;
 		for (int i = 0; i < emailList.size() - 3; i = i + 3) {
 			tableModelInbox.addRow(emailList.subList(i, i + 3).toArray());
+			insertedLine++;
 		}
 		tableMain.addRowSelectionInterval(0, 0);
+
+	}
+
+	private void cleanTable() {
+
+		// delete all email that are currently in the table
+		int rowCount = tableMain.getRowCount();
+		for (int i = rowCount - 1; i >= 0; i--) {
+			tableModelInbox.removeRow(i);
+		}
 	}
 }

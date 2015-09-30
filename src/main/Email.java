@@ -77,6 +77,10 @@ public class Email extends Authenticator {
 		Body = body;
 	}
 
+	public ArrayList<String> getTableContent() {
+		return tableContent;
+	}
+
 	public void receiveEmail(Integer index) {
 
 		// receives emails and generates an array with the information about the
@@ -156,10 +160,6 @@ public class Email extends Authenticator {
 			e.printStackTrace();
 		}
 
-	}
-
-	public ArrayList<String> getTableContent() {
-		return tableContent;
 	}
 
 	public void sendEmail() {
