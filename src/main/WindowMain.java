@@ -360,21 +360,25 @@ public class WindowMain extends Email {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						Integer selectedRow = tableMain.getSelectedRow();
+						System.out.println(selectedRow);
 						if (selectedRow >= 0) {
 
 							int[] rows = tableMain.getSelectedRows();
+
 							// sort the indices of selected Rows because if you
 							// delete 4, 5 is now 4
 							Arrays.sort(rows);
+							setDeletedMessages(rows);
 
 							// remove from last indices to first
 							for (int i = tableMain.getSelectedRowCount() - 1; i >= 0; i--) {
 								tableModelInbox.removeRow(rows[i]);
+
 							}
 
 							Integer currentRows = tableModelInbox.getRowCount();
 
-							// after row deletion action
+							// after row-deletion action
 							if (currentRows - 1 >= selectedRow && currentRows != 0) {
 								// select the row which is in the same place
 								tableMain.setRowSelectionInterval(selectedRow, selectedRow);
@@ -487,11 +491,10 @@ public class WindowMain extends Email {
 		// get the list of data and crop it to the table format
 		ArrayList<String> emailList = getTableContent();
 
-		Integer insertedLine = 0;
-		for (int i = 0; i < emailList.size() - 3; i = i + 3) {
+		for (int i = 0; i < emailList.size(); i = i + 3) {
 			tableModelInbox.addRow(emailList.subList(i, i + 3).toArray());
-			insertedLine++;
 		}
+
 		tableMain.addRowSelectionInterval(0, 0);
 
 	}

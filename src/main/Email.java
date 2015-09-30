@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import javax.mail.Address;
 import javax.mail.Authenticator;
+import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -92,11 +93,9 @@ public class Email extends Authenticator {
 		String host = "pop.gmx.net";
 
 		final String user = "lukas-schaef@gmx.de";
-		final String password = "schaefl07";
-
-		tableContent = new ArrayList<>();
-
+		final String pw = "";
 		try {
+
 			Properties props = new Properties();
 			props.put("mail.pop3.host", host);
 			props.put("mail.pop3.port", port);
@@ -108,23 +107,25 @@ public class Email extends Authenticator {
 			Session emailSession = Session.getInstance(props, new Authenticator() {
 				@Override
 				protected PasswordAuthentication getPasswordAuthentication() {
-					return new PasswordAuthentication(user, password);
+					return new PasswordAuthentication(user, pw);
 				}
 			});
 
 			// connect to pop3 storage
 			POP3Store emailStore = (POP3Store) emailSession.getStore("pop3s");
-			emailStore.connect(host, user, password);
+
+			emailStore.connect(host, user, pw);
 
 			// select the inbox folder
 			Folder emailFolder = emailStore.getFolder("INBOX");
-			emailFolder.open(Folder.READ_ONLY);
+			emailFolder.open(Folder.READ_WRITE);
 
-			// create array
 			Message[] messages = emailFolder.getMessages();
+			tableContent = new ArrayList<>();
 
 			if (index == -1) {
 				// get information about all messages and add to Arraylist
+
 				for (int i = 0; i < messages.length; i++) {
 					Message msg = messages[i];
 					Address[] fromAddress = msg.getFrom();
@@ -135,10 +136,10 @@ public class Email extends Authenticator {
 					tableContent.add(regard);
 					tableContent.add(sender);
 					tableContent.add(sentDate);
-
 				}
 
 			} else {
+
 				// get information about the message at the index and add its
 				// information to an Arraylist
 				Message msg = messages[index];
@@ -197,6 +198,21 @@ public class Email extends Authenticator {
 			System.out.println("Email was successfully sent!");
 		} catch (MessagingException e) {
 			e.printStackTrace();
+		}
+
+	}
+
+	public void deleteEmailOnServer(Message msg) {
+		try {
+			msg.setFlag(Flag.DELETED, true);
+		} catch (MessagingException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void setDeletedMessages(int[] rows) {
+		for (int i = 0; i < rows.length; i++) {
+			System.out.println(rows);
 		}
 
 	}
