@@ -1,7 +1,10 @@
 package main;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.Scanner;
 
 import javax.mail.Address;
 import javax.mail.Authenticator;
@@ -93,9 +96,10 @@ public class Email extends Authenticator {
 		String host = "pop.gmx.net";
 
 		final String user = "lukas-schaef@gmx.de";
-		final String pw = "";
-		try {
+		final String password = getPasswordFromFile();
+		;
 
+		try {
 			Properties props = new Properties();
 			props.put("mail.pop3.host", host);
 			props.put("mail.pop3.port", port);
@@ -107,14 +111,13 @@ public class Email extends Authenticator {
 			Session emailSession = Session.getInstance(props, new Authenticator() {
 				@Override
 				protected PasswordAuthentication getPasswordAuthentication() {
-					return new PasswordAuthentication(user, pw);
+					return new PasswordAuthentication(user, password);
 				}
 			});
 
 			// connect to pop3 storage
 			POP3Store emailStore = (POP3Store) emailSession.getStore("pop3s");
-
-			emailStore.connect(host, user, pw);
+			emailStore.connect(host, user, password);
 
 			// select the inbox folder
 			Folder emailFolder = emailStore.getFolder("INBOX");
@@ -167,7 +170,7 @@ public class Email extends Authenticator {
 
 		String from = "lukas-schaef@gmx.de";
 		final String username = "lukas-schaef@gmx.de";
-		final String password = "schaefl07";
+		final String password = getPasswordFromFile();
 
 		Properties props = new Properties();
 		props.put("mail.smtp.starttls.enable", "true");
@@ -214,6 +217,20 @@ public class Email extends Authenticator {
 		for (int i = 0; i < rows.length; i++) {
 			System.out.println(rows);
 		}
+
+	}
+
+	private String getPasswordFromFile() {
+
+		File pwFile = new File("C:/Users/Lukas/Documents/eclipse_files/Password.txt");
+		Scanner sc = null;
+		try {
+			sc = new Scanner(pwFile);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		return sc.next();
 
 	}
 
